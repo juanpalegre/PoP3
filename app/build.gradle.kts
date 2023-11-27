@@ -66,4 +66,7 @@ dependencies {
 
     // Interaction with the blockchain
     implementation ("org.web3j:core:5.0.0")
+
+    //qr Scanner
+    implementation ("com.journeyapps:zxing-android-embedded:4.3.0")
 }
