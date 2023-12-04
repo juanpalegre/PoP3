@@ -1,34 +1,26 @@
 package com.example.pop3.ui
 
-import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
+import android.util.Base64
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import androidx.navigation.Navigation.findNavController
-import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import com.example.pop3.R
 import com.example.pop3.databinding.FragmentCameraBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnSuccessListener
-import java.io.File
-import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.io.ByteArrayOutputStream
 
 
 class CameraFragment : Fragment(R.layout.fragment_camera) {
@@ -38,6 +30,10 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
         private const val REQUEST_IMAGE_CAPTURE = 1
         private const val REQUEST_LOCATION_PERMISSION = 1
     }
+    private var currentLatitude: Double = 0.0
+    private var currentLongitude: Double = 0.0
+    private var bitmap: Bitmap? = null
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -51,13 +47,16 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             // Si ya se concedieron los permisos, obtén la ubicación
-            // Puedes usar FusedLocationProviderClient para obtener la ubicación actual
+            // Usamos FusedLocationProviderClient para obtener la ubicación actual
             val fusedLocationClient: FusedLocationProviderClient =
                 LocationServices.getFusedLocationProviderClient(requireContext())
 
             fusedLocationClient.lastLocation
                 .addOnSuccessListener(requireActivity(), OnSuccessListener { location ->
-                    // location es la última ubicación conocida
+                    // Almacenamos los valores de latitud y longitud
+                    currentLatitude = location.latitude
+                    currentLongitude = location.longitude
+                    Log.d("CameraFragment", "Latitud: $currentLatitude, Longitud: $currentLongitude")
                     if (location != null) {
                         // Actualizar la interfaz con la ubicación obtenida
                         updateInterfaceWithLocationData(location.latitude, location.longitude)
@@ -93,16 +92,45 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             val extras: Bundle? = data?.extras
             val imageBitmap = extras?.get("data") as? Bitmap
-            // Muestra la vista previa en tu interfaz
-
-            // Guarda la foto (puedes personalizar esto según tus necesidades)
-            saveImageToGallery(imageBitmap)
-            showToast("Foto guardada")
+            // Agregar valores de latitud y longitud al Bundle
+            val bundle = Bundle().apply {
+                putDouble("latitude", currentLatitude)
+                putDouble("longitude", currentLongitude)
+            }
+            binding.imageAddPhoto.setImageBitmap(imageBitmap)
+            binding.imageData.text = "Latitud: $currentLatitude, Longitud: $currentLongitude"
+            bitmap = imageBitmap
+            // Navegar al HomeFragment con la imagen y datos de ubicación
+            binding.buttonSavePhoto.setOnClickListener {
+                saveImageToGallery(imageBitmap, bundle)
+                showToast("Image saved to gallery")
+                navigateToHomeFragment(bundle)
+            }
+            binding.buttonDiscardPhoto.setOnClickListener {
+                return@setOnClickListener
+            }
         }
     }
 
-    private fun saveImageToGallery(imageBitmap: Bitmap?) {
-        TODO("Not yet implemented")
+    private fun navigateToHomeFragment(bundle: Bundle) {
+        NavHostFragment.findNavController(this).navigate(R.id.action_cameraFragment_to_homeFragment, bundle)
+    }
+
+    private fun saveImageToGallery(imageBitmap: Bitmap?, bundle: Bundle) {
+        imageBitmap?.let {
+            val encodedImage = encodeBitmapToBase64(imageBitmap)
+            val sharedPreferences = requireActivity().getPreferences(Context.MODE_PRIVATE)
+            val editor = sharedPreferences.edit()
+            editor.putString("encodedImage", encodedImage)
+            editor.apply()
+        }
+    }
+
+    private fun encodeBitmapToBase64(bitmap: Bitmap): String {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+        val byteArray = byteArrayOutputStream.toByteArray()
+        return Base64.encodeToString(byteArray, Base64.DEFAULT)
     }
 
     private fun showToast(message: String) {
