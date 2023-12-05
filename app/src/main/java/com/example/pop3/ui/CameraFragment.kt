@@ -119,7 +119,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
     private fun saveImageToGallery(imageBitmap: Bitmap?, bundle: Bundle) {
         imageBitmap?.let {
             val encodedImage = encodeBitmapToBase64(imageBitmap)
-            val sharedPreferences = requireActivity().getPreferences(Context.MODE_PRIVATE)
+            val sharedPreferences = requireActivity().getSharedPreferences("pop3", Context.MODE_PRIVATE)
             val editor = sharedPreferences.edit()
             editor.putString("encodedImage", encodedImage)
             editor.apply()
