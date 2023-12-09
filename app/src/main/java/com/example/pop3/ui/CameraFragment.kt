@@ -17,6 +17,9 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.example.pop3.R
 import com.example.pop3.databinding.FragmentCameraBinding
+import com.example.pop3.models.ImageData
+import com.example.pop3.ui.CameraFragmentDirections.ActionCameraFragmentToHomeFragment
+import com.example.pop3.ui.CameraFragmentDirections.actionCameraFragmentToHomeFragment
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnSuccessListener
@@ -104,7 +107,7 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
             binding.buttonSavePhoto.setOnClickListener {
                 saveImageToGallery(imageBitmap, bundle)
                 showToast("Image saved to gallery")
-                navigateToHomeFragment(bundle)
+                navigateToHomeFragment()
             }
             binding.buttonDiscardPhoto.setOnClickListener {
                 return@setOnClickListener
@@ -112,8 +115,8 @@ class CameraFragment : Fragment(R.layout.fragment_camera) {
         }
     }
 
-    private fun navigateToHomeFragment(bundle: Bundle) {
-        NavHostFragment.findNavController(this).navigate(R.id.action_cameraFragment_to_homeFragment, bundle)
+    private fun navigateToHomeFragment() {
+        NavHostFragment.findNavController(this).navigate(R.id.action_cameraFragment_to_homeFragment)
     }
 
     private fun saveImageToGallery(imageBitmap: Bitmap?, bundle: Bundle) {

@@ -19,9 +19,16 @@
         android:name="com.example.pop3.ui.HomeFragment"
         android:label="fragment_home"
         tools:layout="@layout/fragment_home" >
-        <action
-            android:id="@+id/action_homeFragment_to_detailFragment"
-            app:destination="@id/detailFragment" />
+        <argument
+            android:name="latitude"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="NO_LATITUDE" />
+        <argument
+            android:name="longitude"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="NO_LONGITUDE" />
     </fragment>
     <fragment
         android:id="@+id/mapFragment"
@@ -33,9 +40,4 @@
         android:name="com.example.pop3.ui.ScanQRFragment"
         android:label="fragment_scan_q_r"
         tools:layout="@layout/fragment_scan_q_r" />
-    <fragment
-        android:id="@+id/detailFragment"
-        android:name="com.example.pop3.ui.DetailFragment"
-        android:label="fragment_detail"
-        tools:layout="@layout/fragment_detail" />
 </navigation>
